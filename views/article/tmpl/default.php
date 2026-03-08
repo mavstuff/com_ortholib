@@ -18,8 +18,10 @@ JHtml::_('stylesheet', 'com_ortholib/style.css', array(), true);
 <h1><?php /*echo $this->bookid.", id ".$this->bookid*/?> </h1>
 
 <div class="bookcontainer">
+    <button id="tocBtn">☰ Зміст</button>
     <div class="lefttoc">
-        <div><a href="index.php?option=com_ortholib&view=ortholib">&lt;&lt;К списку книг</a> </div>
+        <a href="#" id="tocClose">✖ Закрити</a>
+        <div><a href="index.php?option=com_ortholib&view=ortholib">&lt;&lt;До списку книг</a> </div>
         <?php echo $this->PrintBookToc($this->booktoc); ?>
     </div>
     <div class="articletext">
