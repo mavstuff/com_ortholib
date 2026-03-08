@@ -22,7 +22,7 @@ class OrtholibModelOrtholib extends JModelLegacy
     /**
      * @var string message
      */
-    protected $bookslist;
+    protected $booklist;
 
     protected function getBookInfo($content_opf_file, $directory_base)
     {
@@ -53,11 +53,11 @@ class OrtholibModelOrtholib extends JModelLegacy
      *
      * @return  string  The message to be displayed to the user
      */
-    public function getBooksList()
+    public function getBookList()
     {
-        if (!isset($this->bookslist))
+        if (!isset($this->booklist))
         {
-            $this->bookslist = array();
+            $this->booklist = array();
 
             $searchPath = JPATH_SITE.DIRECTORY_SEPARATOR."media/com_ortholib/epubunzip";
 
@@ -86,7 +86,7 @@ class OrtholibModelOrtholib extends JModelLegacy
 
                             if ($book != null)
                             {
-                                $this->bookslist[$directory_base] = $book;
+                                $this->booklist[$directory_base] = $book;
                             }
                         }
                     }
@@ -100,7 +100,7 @@ class OrtholibModelOrtholib extends JModelLegacy
 			//}
         }
 
-        return $this->bookslist;
+        return $this->booklist;
     }
 
 

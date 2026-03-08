@@ -19,8 +19,8 @@ JHtml::_('stylesheet', 'com_ortholib/style.css', array(), true);
 <ul>
     <?php
 
-        if (!empty($this->bookslist)) {
-            foreach ($this->bookslist as $directorykey => $directoryval)
+        if (!empty($this->booklist)) {
+            foreach ($this->booklist as $directorykey => $directoryval)
             {
                 ?>
 

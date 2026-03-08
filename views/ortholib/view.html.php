@@ -29,9 +29,9 @@ class OrtholibViewOrtholib extends JViewLegacy
     function display($tpl = null)
     {
         // Assign data to the view
-        $this->bookslist = $this->get('BooksList');
+        $this->booklist = $this->get('BookList');
 
-        uasort($this->bookslist, array($this, 'comparefunc'));
+        uasort($this->booklist, array($this, 'comparefunc'));
 
         // Check for errors.
         if (count($errors = $this->get('Errors')))
@@ -52,7 +52,7 @@ class OrtholibViewOrtholib extends JViewLegacy
 
     function comparefunc($a, $b)
     {
-        return $this->mb_strcasecmp($a["creator"], $b["creator"]);
+        return $this->mb_strcasecmp($a["creator"].$a["title"], $b["creator"].$b["title"]);
     }
 
 }
