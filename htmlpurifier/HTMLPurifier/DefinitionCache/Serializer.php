@@ -112,6 +112,7 @@ class HTMLPurifier_DefinitionCache_Serializer extends HTMLPurifier_DefinitionCac
             }
             unlink($dir . '/' . $filename);
         }
+        closedir($dh);
         return true;
     }
 
@@ -138,10 +139,12 @@ class HTMLPurifier_DefinitionCache_Serializer extends HTMLPurifier_DefinitionCac
                 continue;
             }
             $key = substr($filename, 0, strlen($filename) - 4);
-            if ($this->isOld($key, $config)) {
-                unlink($dir . '/' . $filename);
+            $file = $dir . '/' . $filename;
+            if ($this->isOld($key, $config) && file_exists($file)) {
+                unlink($file);
             }
         }
+        closedir($dh);
         return true;
     }
 
@@ -198,11 +201,8 @@ class HTMLPurifier_DefinitionCache_Serializer extends HTMLPurifier_DefinitionCac
         if ($result !== false) {
             // set permissions of the new file (no execute)
             $chmod = $config->get('Cache.SerializerPermissions');
-            if ($chmod === null) {
-                // don't do anything
-            } else {
-                $chmod = $chmod & 0666;
-                chmod($file, $chmod);
+            if ($chmod !== null) {
+                chmod($file, $chmod & 0666);
             }
         }
         return $result;
@@ -217,6 +217,16 @@ class HTMLPurifier_DefinitionCache_Serializer extends HTMLPurifier_DefinitionCac
     {
         $directory = $this->generateDirectoryPath($config);
         $chmod = $config->get('Cache.SerializerPermissions');
+        if ($chmod === null) {
+            if (!@mkdir($directory) && !is_dir($directory)) {
+                trigger_error(
+                    'Could not create directory ' . $directory . '',
+                    E_USER_WARNING
+                );
+                return false;
+            }
+            return true;
+        }
         if (!is_dir($directory)) {
             $base = $this->generateBaseDirectoryPath($config);
             if (!is_dir($base)) {
@@ -229,25 +239,14 @@ class HTMLPurifier_DefinitionCache_Serializer extends HTMLPurifier_DefinitionCac
             } elseif (!$this->_testPermissions($base, $chmod)) {
                 return false;
             }
-            if ($chmod === null) {
+            if (!@mkdir($directory, $chmod) && !is_dir($directory)) {
                 trigger_error(
-                    'Base directory ' . $base . ' does not exist,
-                    please create or change using %Cache.SerializerPath',
+                    'Could not create directory ' . $directory . '',
                     E_USER_WARNING
                 );
                 return false;
             }
-            if ($chmod !== null) {
-                mkdir($directory, $chmod);
-            } else {
-                mkdir($directory);
-            }
             if (!$this->_testPermissions($directory, $chmod)) {
-                trigger_error(
-                    'Base directory ' . $base . ' does not exist,
-                    please create or change using %Cache.SerializerPath',
-                    E_USER_WARNING
-                );
                 return false;
             }
         } elseif (!$this->_testPermissions($directory, $chmod)) {
@@ -289,13 +288,14 @@ class HTMLPurifier_DefinitionCache_Serializer extends HTMLPurifier_DefinitionCac
             } elseif (filegroup($dir) === posix_getgid()) {
                 $chmod = $chmod | 0070;
             } else {
-                // PHP's probably running as nobody, so we'll
-                // need to give global permissions
-                $chmod = $chmod | 0777;
+              // PHP's probably running as nobody, it is
+              // not obvious how to fix this (777 is probably
+              // bad if you are multi-user), let the user figure it out
+                $chmod = null;
             }
             trigger_error(
-                'Directory ' . $dir . ' not writable, ' .
-                'please chmod to ' . decoct($chmod),
+                'Directory ' . $dir . ' not writable. ' .
+                ($chmod === null ? '' : 'Please chmod to ' . decoct($chmod)),
                 E_USER_WARNING
             );
         } else {

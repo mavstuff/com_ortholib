@@ -13,6 +13,31 @@ defined('_JEXEC') or die;
 
 require_once( JPATH_COMPONENT_SITE.DIRECTORY_SEPARATOR."htmlpurifier".DIRECTORY_SEPARATOR."HTMLPurifier.auto.php");
 
+class ImgBaseFilter extends HTMLPurifier_URIFilter
+{
+    public $name = 'ImgBaseFilter';
+
+    public function filter(&$uri, $config, $context)
+    {
+        $token = $context->get('CurrentToken');
+        $bookid = $config->get('Ortholib.BookId');
+
+        if ($token && $token->name === 'img') {
+
+            /* only modify relative URLs */
+            if (!$uri->scheme && !$uri->host) {
+
+                $uri->path = 'media/com_ortholib/epubunzip/' .
+                             $bookid . '/' .
+                             ltrim($uri->path, '/');
+            }
+        }
+
+
+        return true;
+    }
+}
+
 /**
  * ortholib model.
  *
@@ -263,6 +288,11 @@ class OrtholibModelArticle extends JModelLegacy
                         $config = HTMLPurifier_Config::createDefault();
                         $config->set('Core.Encoding', 'utf-8');
                         $config->set('HTML.Doctype', 'XHTML 1.1');
+                        $config->set('URI.DefinitionID', 'ortholib-uri');
+                        $config->set('URI.DefinitionRev', 1);
+
+                        $config->set('Ortholib.BookId', $bookid);
+
                         //$config->set('HTML.Allowed', 'p,a[title|name],abbr[title],acronym[title],
                         //b,strong,blockquote[cite],code,em,i,span,div,h1,h2,h3,h4,h5');
                         $config->set('Attr.EnableID', true);
@@ -272,6 +302,10 @@ class OrtholibModelArticle extends JModelLegacy
 
                         //$config->set('AutoFormat.AutoParagraph', TRUE);
                         //$config->set('AutoFormat.Linkify', TRUE);
+
+                        if ($def = $config->maybeGetRawURIDefinition()) {
+                            $def->addFilter(new ImgBaseFilter(), $config);
+                        }
 
                         $purifier = new HTMLPurifier($config);
 
@@ -293,3 +327,5 @@ class OrtholibModelArticle extends JModelLegacy
         return $this->article;
     }
 }
+
+

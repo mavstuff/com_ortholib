@@ -183,11 +183,7 @@ class HTMLPurifier_HTMLModuleManager
             if (!$ok) {
                 $module = $original_module;
                 if (!class_exists($module)) {
-                    trigger_error(
-                        $original_module . ' module does not exist',
-                        E_USER_ERROR
-                    );
-                    return;
+                    throw new Exception($original_module . ' module does not exist');
                 }
             }
             $module = new $module();
@@ -271,10 +267,13 @@ class HTMLPurifier_HTMLModuleManager
         if ($config->get('HTML.TargetBlank')) {
             $modules[] = 'TargetBlank';
         }
-        // NB: HTML.TargetNoreferrer must be AFTER HTML.TargetBlank
+        // NB: HTML.TargetNoreferrer and HTML.TargetNoopener must be AFTER HTML.TargetBlank
         // so that its post-attr-transform gets run afterwards.
         if ($config->get('HTML.TargetNoreferrer')) {
             $modules[] = 'TargetNoreferrer';
+        }
+        if ($config->get('HTML.TargetNoopener')) {
+            $modules[] = 'TargetNoopener';
         }
 
         // merge in custom modules
